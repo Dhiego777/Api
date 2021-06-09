@@ -1,8 +1,8 @@
 module.exports = {
-    client: "mysql",
+    client: "mysql2",
     connection: {
       host: "127.0.0.1",
-      database: "Local MySQL",
+      database: "Farmacia",
       user: "root",
       password: "password"
     }

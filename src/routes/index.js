@@ -1,14 +1,14 @@
 const express = require('express');
-const cadastro = require('../controllers/cadastro');
+const user = require('../controllers/user');
 
 const router = express.Router();
 
 router
-    .get("/cadastro", cadastro.cliente)
-    .post("/cadastro/add", cadastro.addCadastro)
-    .post("/cadastro/remove", cadastro.removeCadastro)
-    .put("/cadastro/edit",cadastro.editarCadastro)
-    .get("/cadastro/getCadastros", cadastro.getCadastros);
+    .get("/user", user.getAll)
+    .get("/user/:cpf", user.getOne)
+    .post("/user", user.create)
+    .delete("/user/:cpf", user.delete)
+    .put("/user/:cpf", user.edit)
 
 
 
