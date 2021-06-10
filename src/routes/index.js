@@ -4,8 +4,8 @@ const user = require('../controllers/user');
 const router = express.Router();
 
 router
-    .get("/user", user.getAll)
-    .get("/user/:cpf", user.getOne)
+    .get("/users", user.getAll)
+    .get("/user", user.getOne)
     .post("/user", user.create)
     .delete("/user/:cpf", user.delete)
     .put("/user/:cpf", user.edit)
