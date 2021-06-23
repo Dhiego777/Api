@@ -3,6 +3,7 @@ const Endereco = require("../models/endereco")
 const Telefone = require("../models/telefone");
 const db = require("../database/db");
 const knex = require("knex");
+const { propfind } = require("../routes");
 
 module.exports = {
     async getOne(req, res) {
@@ -11,7 +12,7 @@ module.exports = {
             let result = await db('user').where({ cpf }).first()
                 .innerJoin('endereco', 'user.iduser', 'endereco.id_user')
                 .innerJoin('telefone', 'user.iduser', 'telefone.id_user')
-                .select('nome', 'sexo', 'cpf', 'idade', 'cep', 'rua', 'bairro', 'cidade', 'estado', 'numero', 'complemento', 'ddd', 'telefone');
+                .select('*');
             return res.status(200).send(result);
         }
         return res.status(404).send({});
@@ -20,7 +21,7 @@ module.exports = {
         let result = await db('user')
             .innerJoin('endereco', 'user.iduser', 'endereco.id_user')
             .innerJoin('telefone', 'user.iduser', 'telefone.id_user')
-            .select('nome', 'sexo', 'cpf', 'idade', 'cep', 'rua', 'bairro', 'cidade', 'estado', 'numero', 'complemento', 'ddd', 'telefone');
+            .select("iduser", 'nome', 'sexo', 'cpf', 'idade', 'cep', 'logradouro', 'bairro', 'localidade', 'estado', 'numero', 'complemento', 'ddd', 'telefone');
         res.status(200).send(result);
     },
     create(req, res) {
@@ -54,51 +55,50 @@ module.exports = {
     },
     async delete(req, res) {
         const { cpf } = req.query
-        try{
+        try {
             let result = await db('user').where({ cpf }).delete()
-            if(result > 0) {
+            if (result > 0) {
 
-                return res.status(200).send({ msg: "Apagou o cadastro"})
+                return res.status(200).send({ msg: "Apagou o cadastro" })
             }
-            return res.status(400).send({ msg: "Usuário não encontrado"})
+            return res.status(400).send({ msg: "Usuário não encontrado" })
         }
         catch (err) {
             console.error(err);
-            return res.status(500).send({msg: "Deu ruim"})
+            return res.status(500).send({ msg: "Deu ruim" })
         }
 
     },
-    edit(req, res) {
-        res.status(200).send("Cadastro editado");
+    async edit(req, res) {
+        const { cpf } = req.body
+
+        await db.transaction(async trx => {
+            let user = await trx.update(new User(req.body))
+                .into('user')
+                .where({ cpf })
+                .catch(err => {
+                    console.log("err", err)
+                    trx.rollback()
+                    return res.status(500).send({ msg: "Erro ao atualizar" });
+                });
+            let place = await trx.update(new Endereco(req.body.place, req.body.place.id_user))
+                .into('endereco')
+                .where( { id_user:req.body.telefone.id_user } )
+                .catch(err => {
+                    console.log("err", err)
+                    trx.rollback()
+                    return res.status(500).send({ msg: "Erro ao atualizar" });
+                });
+            let telephone = await trx.update(new Telefone(req.body.telefone, req.body.telefone.id_user))
+                .into('telefone')
+                .where({ id_user:req.body.telefone.id_user })
+                .catch(err => {
+                    console.log("err", err)
+                    trx.rollback()
+                    return res.status(500).send({ msg: "Erro ao atualizar" });
+                });
+            await trx.commit()
+            res.status(200).send({ msg: "Cadastro editado" });
+        })
     }
 };
-
-// edit(req, res) {
-//     const { cpf } = req.body
-    // db('user')
-    //     .where({ cpf })
-    //     .update(req.body)
-    // res.status(200).send("Cadastro editado");
-
-    // try {
-    //     let result = db.transaction();
-    //     try {
-    //         db('user')
-    //             .transacting(result)
-    //             .insert({ id: "asdfk", username: "barry", email: "barry@bar.com" });
-    //         db('user')
-    //             .where('username', '=', 'bob')
-    //             .update({ email: "bob@foo.com" });
-    //         result.commit();
-    //     }
-    //     catch (e) {
-    //         result.rollback();
-    //         // As you can see, if you don't rethrow here// the outer catch is never triggeredthrow e;
-    //     }
-    //     // It worked
-    // }
-    // catch (e) {
-    //     //It failed
-    // }
-// }
-// };
