@@ -1,9 +1,8 @@
-const User = require("../models/user");
-const Endereco = require("../models/endereco")
-const Telefone = require("../models/telefone");
+const User = require("../models/user/user");
+const Endereco = require("../models/user/endereco")
+const Telefone = require("../models/user/telefone");
 const db = require("../database/db");
 const knex = require("knex");
-const { propfind } = require("../routes");
 
 module.exports = {
     async getOne(req, res) {
